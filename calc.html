@@ -104,7 +104,7 @@ function calc(str){
 	if(!validate(str)){
 		throw new Error(`${str} is invalid.`);
 	}
-	
+
 	var retVal = 0;
 	var i=0;
 	var stack = [];
@@ -142,12 +142,14 @@ function calc(str){
 //push chars from left to right on to a stack
 //think of the ( as starts and stops
 
-console.log(calc("(5+10*2*2+3+(1*2))*(2+1)"));
-console.log(calc("((5+10*2*2+3+(1*2))*(2+1))"));
-console.log(validate("((5+10*2*2+3+(1*2))*(2+1))"));
+["(5+10*2*2+3+(1*2))*(2+1)",
+"((5+10*2*2+3+(1*2))*(2+1)+10.9*2)",
+"(5+10*2*2+3+(1*2))*(2+1.33)"].forEach(function(it){
+	var expected = eval(it);
+	var actual = calc(it);
+	
+	console.log(expected == actual, expected, actual)
+});
 
-//console.log(calc("(5+10 + calc(1*2)) * (2+1)"));
-// console.log(evalString("1*2+3/4+10*2"))
-//console.log(evalString("2"))
 
 </script>
