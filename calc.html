@@ -1,12 +1,12 @@
 <script>
 
-var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").reduce(function(set,c){
+var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split("").reduce(function(set,c){
 	return set.add(c)
 }, new Set());
 
 var subRefrenceMap = {
-	"E2": 25,
-	"EA32": 30
+	"e2": 25,
+	"ea32": 30
 }
 var orderedOperationsGroups = [new Set(["/", "*"]), new Set(["+", "-"])];
 var possibleOperations = orderedOperationsGroups.reduce(function(possibleOperations, operationGroup){
@@ -136,6 +136,18 @@ function validate(str){
 
 }
 
+function applyFunction(functionName, args){
+	if(!Array.isArray(args)){
+		args = [args];
+	}
+
+	return functionMap[functionName.toLowerCase()].apply(window, args);
+}
+
+function isFunction(functionName){
+	return functionMap.hasOwnProperty(functionName.toLowerCase());
+}
+
 function peek(stack){
 	return stack.length ? stack[stack.length-1] : null;
 }
@@ -144,7 +156,7 @@ function characterBelongsToFunction(c){
 	return c != null && !restrictedChars.has(c) && !isNumber(parseInt);
 }
 
-function isCapitalLetter(c){
+function isLetter(c){
 	return characters.has(c);
 }
 
@@ -153,7 +165,7 @@ function isRightCharacterRefrence(c){
 }
 
 function resolveReference(refrenceKey){ //stub data
-	return subRefrenceMap[refrenceKey];
+	return subRefrenceMap[refrenceKey.toLowerCase()];
 }
 
 function calc(str){
@@ -166,60 +178,66 @@ function calc(str){
 	while(i<str.length){
 		var c = str[i];
 
-		/*if(c == ":"){//resolve reference
-			var left = "";
-			var backTrackCount = 0;
-
-			while(isLeftCharacterRefrence(peek(stack))){
-				backTrackCount++;
-				left = stack.pop() + left;
-			}
-
-			var right = "";
+		if(isLetter(c)){
+			var column = c;
 			i++;
-			while(i<str.length){ // find right
-				c = str[i];
 
-				if(isRightCharacterRefrence(c)){
-					right += c;	
-					i++;				
+			while(i<str.length){ // find right
+				if(isLetter(str[i])){
+					if(column.length<2){ //2 is max column length
+						c = str[i];
+						column += c;	
+						i++;
+					}
+					else {
+						i-=(column.length);
+						column = "";
+						break;
+					}
 				}
 				else {
-					i--;
 					break;
 				}
 			}
 
+			var row = "";
 
-			var refrenceKey = `${left}:${right}`
-			if(!left || !right){
-				var error = Error(`Invalid reference key ${refrenceKey}.`);
-				error.type = "Invalid refrence.";
-				error.refrenceKey = refrenceKey;
-				error.postion = i-backTrackCount;
+			if(column){
+				while(i<str.length){ // find right
+					c = str[i];
+
+					if(isNumber(c)){
+						row += c;	
+						i++;				
+					}
+					else {
+						i--;
+						break;
+					}
+				}
 			}
-			else {
+			
+			var refrenceKey = `${column}${row}`;
+
+			if(column != "" && row != ""){
 				stack.push(resolveReference(refrenceKey));
 			}
-		}*/
-		if(isCapitalLetter(c)){
-			var refrenceKey = c;
+			else {
+				while(i<str.length){
+					c = str[i];
 
-			i++;
-			while(i<str.length){ // find right
-				c = str[i];
+					if(isLetter(c)){
+						stack.push(c);
+					}
+					else {
+						i--;
+						break;
+					}
 
-				if(isCapitalLetter(c) || isNumber(c)){
-					refrenceKey += c;	
-					i++;				
-				}
-				else {
-					i--;
-					break;
+					i++;
 				}
 			}
-
-			stack.push(resolveReference(refrenceKey));
+					
 		}
 		else if(c==")"){
 			//found a close ....back track to the open
@@ -245,7 +263,7 @@ function calc(str){
 				}
 
 				if(functionMap.hasOwnProperty(functionToApply)){
-					stack.push(functionMap[functionToApply](evaluationValue));
+					stack.push(applyFunction(functionToApply, evaluationValue));
 				}
 				else {
 					var error = Error(`Refrence to undefined function ${functionToApply} in ${str}.`);
@@ -272,25 +290,33 @@ function calc(str){
 
 }
 
+function registerFunction(name, fn){
+	if(name.length<3){
+		throw new Error("Function name must be more than 2 characters.")
+	}
+
+	functionMap[name] = fn;
+}
+
 var floor = function(number){
 	return Math.floor(number);
 }
 
-functionMap["floor"] = floor;
+registerFunction("floor", floor);
 
 //push chars from left to right on to a stack
 //think of the ( as starts and stops
 
 function resolveReferencesForTestCases(str){
 	return Object.keys(subRefrenceMap).reduce(function(resolved, key){
-		return resolved.replace(new RegExp(key, "g"), subRefrenceMap[key]);
+		return resolved.replace(new RegExp(key, "gi"), subRefrenceMap[key]);
 	}, str)
 }
 
 var testCases = ["(5+10*2*2+3+(1*2))*(2+1)",
 "((5+10*2*2+3+(1*2))*(2+1)+10.9*2)",
 "(5+10*2*2+3+(1*2))*floor(2+1.33)",
-"E2+(5+10*2*2+3+(1*2))*floor(2+1.33 * (E2))/EA32"];
+"e2+(5+10*2*2+3+(1*2))*floor(2+1.33 * (E2))/EA32"];
 
 
 testCases.forEach(function(it){
