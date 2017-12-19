@@ -74,9 +74,6 @@ function evalSymbol(str, operations){
 		else{
 			stack.push(c);
 		}
-		/*else if(c != " "){
-			stack.push(c);
-		}*/
 
 		i++
 	}
@@ -84,7 +81,30 @@ function evalSymbol(str, operations){
 	return stack.join("")
 }
 
+function validate(str){
+	var openCount = 0;
+
+	for(var i=0; i<str.length; i++){
+		if(str[i] == "("){
+			openCount++;
+		}
+		else if(str[i] == ")"){
+			openCount--;
+
+			if(openCount < 0){
+				return false;
+			}
+		}
+	}
+
+	return openCount == 0;
+}
+
 function calc(str){
+	if(!validate(str)){
+		throw new Error(`${str} is invalid.`);
+	}
+	
 	var retVal = 0;
 	var i=0;
 	var stack = [];
@@ -103,9 +123,9 @@ function calc(str){
 				popped = stack.pop();
 			}
 
-			//todo replace me
+			//back track to the function name
+
 			stack.push(evalString(formula))
-			//console.log(formula);
 		}
 		else if(c != " ") {
 			stack.push(c);
@@ -115,7 +135,7 @@ function calc(str){
 		i++;
 	}
 
-	return stack;
+	return evalString(stack.join(""));
 
 }
 
@@ -123,6 +143,11 @@ function calc(str){
 //think of the ( as starts and stops
 
 console.log(calc("(5+10*2*2+3+(1*2))*(2+1)"));
+console.log(calc("((5+10*2*2+3+(1*2))*(2+1))"));
+console.log(validate("((5+10*2*2+3+(1*2))*(2+1))"));
+
 //console.log(calc("(5+10 + calc(1*2)) * (2+1)"));
 // console.log(evalString("1*2+3/4+10*2"))
+//console.log(evalString("2"))
+
 </script>
