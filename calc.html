@@ -1,6 +1,13 @@
 <script>
 
+var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split("").reduce(function(set,c){
+	return set.add(c)
+}, new Set());
 
+var subRefrenceMap = {
+	"e:2": 25,
+	"ea:32": 30
+}
 var orderedOperationsGroups = [new Set(["/", "*"]), new Set(["+", "-"])];
 var possibleOperations = orderedOperationsGroups.reduce(function(possibleOperations, operationGroup){
 	operationGroup.forEach(function(operation){
@@ -11,7 +18,7 @@ var possibleOperations = orderedOperationsGroups.reduce(function(possibleOperati
 }, new Set());
 
 var restrictedChars = Object.assign(possibleOperations, {});
-restrictedChars.add("(").add(")");
+restrictedChars.add("(").add(")").add(":");
 
 var functionMap = {};
 
@@ -137,6 +144,20 @@ function characterBelongsToFunction(c){
 	return c != null && !restrictedChars.has(c) && !isNumber(parseInt);
 }
 
+function isLeftCharacterRefrence(c){
+	//TODO optimze
+	return characters.has(c);
+}
+
+function isRightCharacterRefrence(c){
+	//TODO optimze
+	return isNumber(c);
+}
+
+function resolveReference(refrenceKey){ //stub data
+	return subRefrenceMap[refrenceKey.toLowerCase()];
+}
+
 function calc(str){
 	validate(str)
 
@@ -147,7 +168,43 @@ function calc(str){
 	while(i<str.length){
 		var c = str[i];
 
-		if(c==")"){
+		if(c == ":"){//resolve reference
+			var left = "";
+			var backTrackCount = 0;
+
+			while(isLeftCharacterRefrence(peek(stack))){
+				backTrackCount++;
+				left = stack.pop() + left;
+			}
+
+			var right = "";
+			i++;
+			while(i<str.length){ // find right
+				c = str[i];
+
+				if(isRightCharacterRefrence(c)){
+					right += c;	
+					i++;				
+				}
+				else {
+					i--;
+					break;
+				}
+			}
+
+
+			var refrenceKey = `${left}:${right}`
+			if(!left || !right){
+				var error = Error(`Invalid reference key ${refrenceKey}.`);
+				error.type = "Invalid refrence.";
+				error.refrenceKey = refrenceKey;
+				error.postion = i-backTrackCount;
+			}
+			else {
+				stack.push(resolveReference(refrenceKey));
+			}
+		}
+		else if(c==")"){
 			//found a close ....back track to the open
 			var formula = "";
 			var backTrackCount = 1;
@@ -171,7 +228,7 @@ function calc(str){
 				}
 
 				if(functionMap.hasOwnProperty(functionToApply)){
-
+					stack.push(functionMap[functionToApply](evaluationValue));
 				}
 				else {
 					var error = Error(`Refrence to undefined function ${functionToApply} in ${str}.`);
@@ -181,8 +238,6 @@ function calc(str){
 
 					throw error;
 				}
-
-				console.log(functionToApply)
 			}
 			else {
 				stack.push(evaluationValue);
@@ -196,7 +251,7 @@ function calc(str){
 		i++;
 	}
 
-	return evalString(stack.join(""));
+	return new Number(evalString(stack.join("")));
 
 }
 
@@ -209,12 +264,20 @@ functionMap["floor"] = floor;
 //push chars from left to right on to a stack
 //think of the ( as starts and stops
 
+function resolveReferencesForTestCases(str){
+	return Object.keys(subRefrenceMap).reduce(function(resolved, key){
+		return resolved.replace(new RegExp(key, "g"), subRefrenceMap[key]);
+	}, str)
+}
+
 var testCases = ["(5+10*2*2+3+(1*2))*(2+1)",
 "((5+10*2*2+3+(1*2))*(2+1)+10.9*2)",
-"(5+10*2*2+3+(1*2))*floor(2+1.33)"];
+"(5+10*2*2+3+(1*2))*floor(2+1.33)",
+"e:2+(5+10*2*2+3+(1*2))*floor(2+1.33 * (e:2))/ea:32"];
+
 
 testCases.forEach(function(it){
-	var expected = eval(it);
+	var expected = eval(resolveReferencesForTestCases(it));
 	var actual = calc(it);
 	
 	console.log(expected == actual, expected, actual)
