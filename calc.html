@@ -1,6 +1,20 @@
 <script>
 
+
 var orderedOperationsGroups = [new Set(["/", "*"]), new Set(["+", "-"])];
+var possibleOperations = orderedOperationsGroups.reduce(function(possibleOperations, operationGroup){
+	operationGroup.forEach(function(operation){
+		possibleOperations.add(operation);
+	});
+
+	return possibleOperations;
+}, new Set());
+
+var restrictedChars = Object.assign(possibleOperations, {});
+restrictedChars.add("(").add(")");
+
+var functionMap = {};
+
 function evalString(str){
 	return orderedOperationsGroups.reduce(function(acc, operationSet){
 		return evalSymbol(acc, operationSet)
@@ -8,7 +22,11 @@ function evalString(str){
 }
 
 function isNumberOrPeriod(str){
-	return str == "." || !isNaN(parseInt(str))
+	return str == "." || isNumber(str)
+}
+
+function isNumber(str){
+	return !isNaN(parseInt(str));
 }
 
 function toString(number){
@@ -47,13 +65,10 @@ function evalSymbol(str, operations){
 			var left = "";
 
 			while(stack.length){
-				c = stack.pop();
-
-				if(isNumberOrPeriod(c)){
-					left = c + left;
+				if(isNumberOrPeriod(peek(stack))){
+					left = stack.pop() + left;
 				}
 				else{
-					stack.push(c);
 					break;
 				}
 			}
@@ -82,29 +97,48 @@ function evalSymbol(str, operations){
 	return stack.join("")
 }
 
-function validate(str){
-	var openCount = 0;
+function validate(str){ 
+	var stack = [];
 
 	for(var i=0; i<str.length; i++){
 		if(str[i] == "("){
-			openCount++;
+			stack.push(i);
 		}
 		else if(str[i] == ")"){
-			openCount--;
+			if(stack.length){
+				stack.pop();
+			}
+			else {
+				var error = new Error(`Unexpected closing paren at position ${i}.`);
+				error.postionData = i;
+				error.type = "UnexpectedClosing";
 
-			if(openCount < 0){
-				return false;
+				throw error;
 			}
 		}
 	}
 
-	return openCount == 0;
+	if(stack.length){
+		var error = new Error(`Unclosed parens for paren(s) opened in postion (s) ${stack.join(", ")}.`);
+
+		error.postionData = stack;
+		error.type = "UnclosedParen";
+
+		throw error;
+	}
+
+}
+
+function peek(stack){
+	return stack.length ? stack[stack.length-1] : null;
+}
+
+function characterBelongsToFunction(c){
+	return c != null && !restrictedChars.has(c) && !isNumber(parseInt);
 }
 
 function calc(str){
-	if(!validate(str)){
-		throw new Error(`${str} is invalid.`);
-	}
+	validate(str)
 
 	var retVal = 0;
 	var i=0;
@@ -116,23 +150,43 @@ function calc(str){
 		if(c==")"){
 			//found a close ....back track to the open
 			var formula = "";
+			var backTrackCount = 1;
 			var popped = stack.pop();
 
 			//find left and right and do it
 			while(popped != "("){
 				formula = popped + formula;
 				popped = stack.pop();
+				backTrackCount++
 			}
 
 			//back track to the function name
-			/*if(isNaN(parseInt(stack[stack.length-1]))){
-				while()
-			}*/
-
-
 			var evaluationValue = evalString(formula);
+			
+			if(characterBelongsToFunction(peek(stack))){
+				var functionToApply = "";
+				while(characterBelongsToFunction(peek(stack))){
+					backTrackCount++;
+					functionToApply = stack.pop() + functionToApply;
+				}
 
-			stack.push(evaluationValue);
+				if(functionMap.hasOwnProperty(functionToApply)){
+
+				}
+				else {
+					var error = Error(`Refrence to undefined function ${functionToApply} in ${str}.`);
+					error.type = "UndefinedFunction";
+					error.functionName = "foobar";
+					error.postion = i-backTrackCount;
+
+					throw error;
+				}
+
+				console.log(functionToApply)
+			}
+			else {
+				stack.push(evaluationValue);
+			}
 		}
 		else if(c != " ") {
 			stack.push(c);
@@ -146,17 +200,49 @@ function calc(str){
 
 }
 
+var floor = function(number){
+	return Math.floor(number);
+}
+
+functionMap["floor"] = floor;
+
 //push chars from left to right on to a stack
 //think of the ( as starts and stops
 
-["(5+10*2*2+3+(1*2))*(2+1)",
+var testCases = ["(5+10*2*2+3+(1*2))*(2+1)",
 "((5+10*2*2+3+(1*2))*(2+1)+10.9*2)",
-"(5+10*2*2+3+(1*2))*(2+1.33)"].forEach(function(it){
+"(5+10*2*2+3+(1*2))*floor(2+1.33)"];
+
+testCases.forEach(function(it){
 	var expected = eval(it);
 	var actual = calc(it);
 	
 	console.log(expected == actual, expected, actual)
 });
+
+try {
+	validate("(()()")
+	console.log("Failed test. Expected exception for unclosed paren.")
+}
+catch(e){
+	console.log("Should catch unclosed parens.", e.type == "UnclosedParen", e.postionData[0] == 0, e.postionData.length == 1);
+}
+
+try {
+	validate("(()()))")
+	console.log("Failed test. Expected exception for unexpected closing paren.")
+}
+catch(e){
+	console.log("Should catch unexpected closing parens.", e.type == "UnexpectedClosing", e.postionData == 6);
+}
+
+try {
+	calc("(5+10*2*2+3+(1*2))*foobar(2+1.33)");
+	console.log("Failed test. Expected exception for undefined function.")
+}
+catch(e){
+	console.log("Should catch undefined functions.", e.type == "UndefinedFunction", e.functionName == "foobar", e.postion == 19);
+}
 
 
 </script>
