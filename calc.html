@@ -1,12 +1,12 @@
 <script>
 
-var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split("").reduce(function(set,c){
+var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").reduce(function(set,c){
 	return set.add(c)
 }, new Set());
 
 var subRefrenceMap = {
-	"e:2": 25,
-	"ea:32": 30
+	"E2": 25,
+	"EA32": 30
 }
 var orderedOperationsGroups = [new Set(["/", "*"]), new Set(["+", "-"])];
 var possibleOperations = orderedOperationsGroups.reduce(function(possibleOperations, operationGroup){
@@ -144,18 +144,16 @@ function characterBelongsToFunction(c){
 	return c != null && !restrictedChars.has(c) && !isNumber(parseInt);
 }
 
-function isLeftCharacterRefrence(c){
-	//TODO optimze
+function isCapitalLetter(c){
 	return characters.has(c);
 }
 
 function isRightCharacterRefrence(c){
-	//TODO optimze
 	return isNumber(c);
 }
 
 function resolveReference(refrenceKey){ //stub data
-	return subRefrenceMap[refrenceKey.toLowerCase()];
+	return subRefrenceMap[refrenceKey];
 }
 
 function calc(str){
@@ -168,7 +166,7 @@ function calc(str){
 	while(i<str.length){
 		var c = str[i];
 
-		if(c == ":"){//resolve reference
+		/*if(c == ":"){//resolve reference
 			var left = "";
 			var backTrackCount = 0;
 
@@ -203,6 +201,25 @@ function calc(str){
 			else {
 				stack.push(resolveReference(refrenceKey));
 			}
+		}*/
+		if(isCapitalLetter(c)){
+			var refrenceKey = c;
+
+			i++;
+			while(i<str.length){ // find right
+				c = str[i];
+
+				if(isCapitalLetter(c) || isNumber(c)){
+					refrenceKey += c;	
+					i++;				
+				}
+				else {
+					i--;
+					break;
+				}
+			}
+
+			stack.push(resolveReference(refrenceKey));
 		}
 		else if(c==")"){
 			//found a close ....back track to the open
@@ -273,7 +290,7 @@ function resolveReferencesForTestCases(str){
 var testCases = ["(5+10*2*2+3+(1*2))*(2+1)",
 "((5+10*2*2+3+(1*2))*(2+1)+10.9*2)",
 "(5+10*2*2+3+(1*2))*floor(2+1.33)",
-"e:2+(5+10*2*2+3+(1*2))*floor(2+1.33 * (e:2))/ea:32"];
+"E2+(5+10*2*2+3+(1*2))*floor(2+1.33 * (E2))/EA32"];
 
 
 testCases.forEach(function(it){
