@@ -215,6 +215,14 @@ function calc(str){
 						break;
 					}
 				}
+
+				if(row == ""){
+					var error = new Error("Cell reference should have a row number.");
+					error.postion = i-column.length+1;
+					error.column = column;
+					error.type = "MissingRowNumberInCellReference"
+					throw error;
+				}
 			}
 			
 			var refrenceKey = `${column}${row}`;
@@ -350,5 +358,13 @@ catch(e){
 	console.log("Should catch undefined functions.", e.type == "UndefinedFunction", e.functionName == "foobar", e.postion == 19);
 }
 
+
+try {
+	calc("E2+EE+5");
+	console.log("Failed test. Expected exception for cell reference without row reference.")
+}
+catch(e){
+	console.log("Should catch cell reference without row reference.", e.type == "MissingRowNumberInCellReference", e.column == "EE", e.postion == 3);
+}
 
 </script>
