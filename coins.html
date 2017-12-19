@@ -1,0 +1,61 @@
+<script>
+
+  function extractDemoninations(amount, denominations) {
+
+    // intialize an array of zeros with indices up to amount
+    var waysOfDoingNcents = [];
+    for (var i = 0; i <= amount; i++) {
+        waysOfDoingNcents[i] = 0;
+    }
+    waysOfDoingNcents[0] = 1;
+
+    denominations.forEach(function(coin) {
+        for (var higherAmount = coin; higherAmount <= amount; higherAmount++) {
+            var higherAmountRemainder = higherAmount - coin;
+            waysOfDoingNcents[higherAmount] += waysOfDoingNcents[higherAmountRemainder];
+        }
+    });
+
+    return waysOfDoingNcents[amount];
+}
+
+// function extractDemoninations(amount, denominations){
+// 	var allCombos = []
+// 	if(amount == 0){
+// 		//return [[]];
+// 	}
+// 	else if(amount == 1){
+// 		//allCombos.push([1])
+// 	}
+// 	else {
+// 		for(var i=0; i<denominations.length; i++){
+// 			var currentDenomination = denominations[i];
+// 			var amounts = [];
+// 			var mAmount = amount;
+
+// 			while(mAmount>0){
+// 				mAmount-=currentDenomination;
+// 				amounts.push(currentDenomination);
+
+// 				/*var combos = extractDemoninations(mAmount, denominations);
+
+// 				if(combos.length){
+// 					allCombos.push([currentDenomination].concat(combos));
+// 				}*/			
+// 			}
+
+// 			if(mAmount == 0){
+// 				allCombos.push(amounts);
+// 			}
+
+// 		}
+// 	}
+
+// 	return allCombos;
+// }
+
+var combosForDems = extractDemoninations(4, [1,2,3,4])
+console.log(combosForDems);
+
+
+</script>

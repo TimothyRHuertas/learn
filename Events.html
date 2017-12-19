@@ -1,0 +1,46 @@
+<html>
+	<head>
+		<script>
+			class EventEmitter{
+
+				constructor(){
+					this.events = {};
+				}
+
+				addEventListener(name, handler, args, thisArg){
+					if(!this.events[name]){
+						this.events[name] = []
+					}
+
+					if(!thisArg){
+						thisArg = this;
+					}
+
+					//what order do we want the events to fire in
+					this.events[name].push({handler,args, thisArg})
+				}
+
+				trigger(name){
+
+					if(this.events[name]){
+						this.events[name].forEach((touple) => {
+							touple["handler"].apply(touple["thisArg"], touple["args"])
+						})
+					}
+				}
+			}
+
+			var e = new EventEmitter();
+
+			e.addEventListener("echo", function(a, b) {
+				console.log(a,b, this);
+			}, ["hi", "bye"], this);
+
+			e.trigger("echo");
+
+
+			a(1)(2)
+
+		</script>
+	</head>
+</html>

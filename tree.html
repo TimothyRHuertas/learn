@@ -1,0 +1,91 @@
+<script>
+class Node {
+  constructor(value, children){
+    this.value = value;
+    this.children = children;
+  }
+}
+
+class Queue {
+  constructor(){
+    this.data = [];
+  }
+  
+  enqueue(item){
+    this.data.push(item);
+  }
+  
+  dequeue(){
+    return this.data.shift();
+  }
+
+  empty(){
+    return this.data.length == 0;
+  }
+}
+
+class Stack {
+  constructor() {
+    this.data = [];
+  }
+
+  push(item){
+    this.data.push(item);
+  }
+
+  pop(){
+    return this.data.pop();
+  }
+
+
+  empty(){
+    return this.data.length == 0;
+  }
+}
+
+var lineage = [new Node("mom", [new Node("m grandma"), new Node("m grandpa")]), 
+                     new Node("dad", [new Node("p grandma"), new Node("p grandpa")])]
+var root = new Node("me", lineage);
+
+//console.log(root.children.length);
+function bfs(node, needle){
+  var q = new Queue();
+  q.enqueue(node);
+  
+
+  while(!q.empty()){
+    var curNode = q.dequeue();
+    console.log(curNode.value);
+    if(curNode.value == needle){
+      return curNode;
+    }
+    else if(curNode.children){
+      curNode.children.forEach((n) =>{
+        q.enqueue(n);
+      });
+    }
+  }
+}
+
+function dfs(node, needle){
+  var stack = new Stack();
+  stack.push(node);
+
+  while(!stack.empty()){
+    var curNode = stack.pop();
+    console.log(curNode.value);
+    if(curNode.value == needle){
+      return curNode;
+    }
+    else if(curNode.children){
+      curNode.children.forEach((n)=>{
+        stack.push(n);
+      })
+    }
+  }
+}
+
+bfs(root, "mom");
+//dfs(root, "mom");
+
+</script>

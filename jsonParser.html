@@ -1,0 +1,86 @@
+<html>
+	<script>
+		class Node {
+		  constructor(value, left, right){
+		    this.value = value;
+		    this.left = left;
+		    this.right = right;
+		  }
+		}
+
+		var left = new Node(5, new Node(1), new Node(2));
+		var right = new Node(8, new Node(5), new Node(7));
+		var root = new Node(6, left, right);	
+
+		function serialzie(object){
+			var str = "";
+
+			if(object){
+				str = `{value:${object.value},left:${serialzie(object.left)},right:${serialzie(object.right)}}`;
+			}		
+
+			return str;
+		}
+
+		function findDistanceToClose(str){
+			console.log(str)
+			var openCount = 1;
+			var i = 1;
+
+			while(openCount){
+				var cur = str[i];
+
+				if(cur == "{"){
+					openCount++
+				}
+				else if(cur == "}"){
+					openCount--
+				}
+
+				i++;
+			}
+
+			return i;
+		}
+
+		function deserialize(str){
+			var obj;
+
+			if(str){
+				var valueStr = "{value:";
+				var leftStr = `${valueStr}N,left:`;
+				var rightStr = ",right:";
+
+				obj = new Node();
+				obj.value = str.substr(valueStr.length,1);
+
+				var leftIdx;
+				var distanceToClose;
+
+				leftIdx = leftStr.length;
+
+				if(str[leftIdx] == "{"){
+					distanceToClose = findDistanceToClose(str.substr(leftIdx));
+					obj.left = deserialize(str.substr(leftIdx, distanceToClose));
+				}
+
+
+				
+				leftIdx = leftIdx + distanceToClose + rightStr.length;
+
+				if(str[leftIdx] == "{"){
+					distanceToClose = findDistanceToClose(str.substr(leftIdx));
+					obj.right = deserialize(str.substr(leftIdx, distanceToClose));
+				}
+			}
+
+			return obj;
+		}
+
+		var serialzied = serialzie(root);
+		var deserialized = deserialize(serialzied);
+
+		console.log(serialzied == serialzie(deserialized));
+	</script>
+
+</html>

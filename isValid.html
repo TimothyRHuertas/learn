@@ -1,0 +1,35 @@
+<script>
+var input = "{[(])}"
+var stack = [];
+var chars = input.split("");
+var openCloseMap = {
+  "{": "}",
+  "[": "]",
+  "(": ")"
+};
+
+var isValid = true;
+
+for(var i=0; i<chars.length; i++) {
+  var c = chars[i];
+  if(openCloseMap.hasOwnProperty(c)){
+    //time to open
+    stack.push(c);
+  }
+  else {
+    //assume it's a closer
+    var opener = stack.pop();
+    if(c != openCloseMap[opener]){//broken
+        isValid = false;
+        break;
+    }
+  }
+}
+
+if(stack.length > 0){
+  isValid = false;
+}
+
+console.log("is valid", isValid); 
+</script>
+

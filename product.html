@@ -1,0 +1,100 @@
+<script>
+
+/*
+You have an array of integers, and for each index you want to find the product of every integer except the integer at that index.
+Write a function getProductsOfAllIntsExceptAtIndex() that takes an array of integers and returns an array of the products.
+
+For example, given:
+
+  [1, 7, 3, 4]
+
+your function would return:
+
+  [84, 12, 28, 21]
+
+by calculating:
+
+  [7 * 3 * 4,  1 * 3 * 4,  1 * 7 * 4,  1 * 7 * 3]
+
+Do not use division in your solution.
+
+[7 3 4]
+[1 3 4]
+[1 7 4]
+[1 7 3]
+*/
+
+/*function product(arr){
+	var leftGreedy = 1;
+	var rightGreedy
+	var prods = [];
+
+	for(var i=0; i<arr.length; i++){
+		var p = leftGreedy;
+		
+		for(var x=i+1; x<arr.length; x++){
+			p = p * arr[x];
+		}
+
+		prods.push(p);
+		leftGreedy = leftGreedy * arr[i];
+	}
+
+	return prods;
+}*/
+
+/*function product(arr){
+	var productsBeforeIndex = [];
+	var productsAfterIndex = [];
+
+	var prodBeforeIndex = 1;
+	var prodAfterIndex = 1;
+
+	for(var i=0; i<arr.length; i++){
+		productsBeforeIndex.push(prodBeforeIndex);
+		productsAfterIndex.unshift(prodAfterIndex);
+		prodBeforeIndex *= arr[i];
+		prodAfterIndex *= arr[arr.length-i-1];
+	}
+
+	var products = [];
+	for(var i=0; i<arr.length; i++){
+		products.push(productsBeforeIndex[i] * productsAfterIndex[i]);
+	}
+
+	return products;
+}*/
+//i = 0
+//arr = [1, 7, 3, 4]
+//greedy = 84
+//products = [84, 12, 28, 21]
+
+
+
+function product(arr){
+	var products = [];
+	var greedy = 1;
+
+	for(var i=0; i<arr.length; i++){
+		products.push(greedy);
+		greedy *= arr[i];
+	}
+
+	greedy = 1;
+
+	for(var i=arr.length-1; i>=0; i--){
+		products[i] *= greedy;
+		greedy *= arr[i];
+	}
+
+	return products;
+}
+
+
+
+
+console.log(product([1, 7, 3, 4]));
+
+
+
+</script>

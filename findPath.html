@@ -1,0 +1,78 @@
+
+<script>
+class Queue {
+  constructor(){
+    this.data = [];
+  }
+  
+  enqueue(item){
+    this.data.push(item);
+  }
+  
+  dequeue(){
+    return this.data.shift();
+  }
+
+  empty(){
+    return this.data.length == 0;
+  }
+} 
+
+ var network = {
+    'Min'     : ['William', 'Jayden', 'Omar'],
+    'William' : ['Min', 'Noam', 'Tim'],
+    'Jayden'  : ['Min', 'Amelia', 'Ren', 'Noam'],
+    'Ren'     : ['Jayden', 'Omar'],
+    'Amelia'  : ['Jayden', 'Adam', 'Miguel'],
+    'Adam'    : ['Amelia', 'Miguel'],
+    'Miguel'  : ['Amelia', 'Adam'],
+    'Omar': ['Min', 'Ren'],
+    'Noam': ['William', 'Jayden'],
+    'Tim': ['William']
+};
+
+
+//find path with bfs
+
+function extractPath(startNode, stopNode, breadCrumbs){
+	var curNode = stopNode;
+	var reversedPath = []
+
+	while(startNode != curNode){
+		reversedPath.push(curNode);
+		curNode = breadCrumbs[curNode];
+	}
+
+	reversedPath.push(startNode);
+
+	return reversedPath.reverse();
+}
+
+function path(startNode, stopNode, matrix){
+	var q = new Queue();
+	var breadCrumbs = {};
+	breadCrumbs[startNode] = null;
+	q.enqueue(startNode);
+
+	while(!q.empty()){
+		var current = q.dequeue();
+		
+		if(current == stopNode){
+			return extractPath(startNode, stopNode, breadCrumbs);
+		}
+		else {
+			matrix[current].forEach((it)=>{
+				if(!breadCrumbs.hasOwnProperty(it)){
+					q.enqueue(it);
+					breadCrumbs[it] = current;
+				}
+			})
+		}
+		
+		
+	}
+}
+
+console.log(path('Tim', 'Omar', network));
+
+</script>

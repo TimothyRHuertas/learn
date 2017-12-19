@@ -1,0 +1,52 @@
+<script>
+
+function normalizeRect(rect){
+	var x = rect.leftX;
+	var y = rect.bottomY - rect.height;
+	var w = rect.width;
+	var h = rect.height;
+
+	return {x,y,w,h, right: w+x, bottm: y+h}
+}
+function intersect(rectA, rectB){
+	var rect1 = normalizeRect(rectA);
+	var rect2 = normalizeRect(rectB);
+	var retVal = {}
+
+	if(rect1.x >= rect2.x && rect1.x <= rect2.right){
+		retVal.x = rect1.x;
+		retVal.w = Math.min(rect1.right, rect2.right) - retVal.x;
+
+	}
+	else if(rect2.x >= rect1.x && rect2.x <= rect1.right){
+		retVal.x = rect2.x;
+		retVal.w = Math.min(rect1.right, rect2.right) - retVal.x;
+	}
+	else {
+		return null;
+	}
+
+	if(rect1.y >= rect2.y && rect1.y <= rect2.right){
+		retVal.y = rect1.y;
+		retVal.h = Math.min(rect1.bottm, rect2.bottm) - retVal.y;
+
+	}
+	else if(rect2.y >= rect1.y && rect2.y <= rect1.right){
+		retVal.y = rect2.y;
+		retVal.h = Math.min(rect1.bottm, rect2.bottm) - retVal.y;
+	}
+	else {
+		return null;
+	}
+
+	return retVal
+
+}
+
+
+var myRectangle1 = {leftX: 1,bottomY: 5, width: 10, height: 4};
+var myRectangle2 = {leftX: 1,bottomY: 5, width: 10, height: 4};
+
+console.log(intersect(myRectangle1, myRectangle2))
+
+</script>

@@ -1,0 +1,30 @@
+<script>
+	
+
+	function sumThree(arr){
+		var min = Math.min(arr[0], arr[1]);
+		var max = Math.max(arr[0], arr[1]);
+
+		var min2 = arr[0] * arr[1];
+		var max2 = arr[0] * arr[1];
+
+		var max3 = arr[0] * arr[1] * arr[2];
+
+		for(var i=2; i < arr.length; i++){
+			var current = arr[i];
+			max3 = Math.max(max3, max2*current, min2*current);
+			
+			max2 = Math.max(max2, max*current, min*current);
+			min2 = Math.min(min2, max*current, min*current);
+
+			max = Math.max(max, current);
+			min = Math.min(min, current);
+		}
+
+		return max3;
+	}
+
+  var arrayOfInts = [1, 10, -5, 1, -100];
+
+  console.log(sumThree(arrayOfInts));
+</script>

@@ -1,0 +1,128 @@
+<script>
+
+function evalString(str){
+	var productSum = evalSymbol(str, new Set(["/", "*"]));
+
+	return evalSymbol(productSum, new Set(["+", "-"]))
+}
+
+function isNumberOrPeriod(str){
+	return str == "." || !isNaN(parseInt(str))
+}
+
+function toString(number){
+	var str = number.toString();
+
+	
+	return str;
+}
+
+function evalSymbol(str, operations){
+	var stack = [];
+	var i =0;
+
+	while(i<str.length){
+		var c = str[i];
+
+		if(operations.has(c)){
+			var operation = c;
+			var right = "";
+
+			i++;
+
+			while(i<str.length){ // find right
+				c = str[i];
+
+				if(isNumberOrPeriod(c)){
+					right += c;	
+					i++;				
+				}
+				else {
+					i--;
+					break;
+				}
+			}
+
+			var left = "";
+
+			while(stack.length){
+				c = stack.pop();
+
+				if(isNumberOrPeriod(c)){
+					left = c + left;
+				}
+				else{
+					stack.push(c);
+					break;
+				}
+			}
+
+			if(operation == "*"){
+				stack.push(toString(Number(left) * Number(right)));
+			}
+			else if(operation == "/"){
+				stack.push(toString(Number(left) / Number(right)));
+			}
+			if(operation == "+"){
+				stack.push(toString(Number(left) + Number(right)));
+			}
+			else if(operation == "-"){
+				stack.push(toString(Number(left) - Number(right)));
+			}
+
+		}
+		else{
+			stack.push(c);
+		}
+		/*else if(c != " "){
+			stack.push(c);
+		}*/
+
+		i++
+	}
+
+	return stack.join("")
+}
+
+function calc(str){
+	var retVal = 0;
+	var i=0;
+	var stack = [];
+
+	while(i<str.length){
+		var c = str[i];
+
+		if(c==")"){
+			//found a close ....back track to the open
+			var formula = "";
+			var popped = stack.pop();
+
+			//find left and right and do it
+			while(popped != "("){
+				formula = popped + formula;
+				popped = stack.pop();
+			}
+
+			//todo replace me
+			stack.push(evalString(formula))
+			//console.log(formula);
+		}
+		else if(c != " ") {
+			stack.push(c);
+		}
+
+
+		i++;
+	}
+
+	return stack;
+
+}
+
+//push chars from left to right on to a stack
+//think of the ( as starts and stops
+
+console.log(calc("(5+10*2*2+3+(1*2))*(2+1)"));
+//console.log(calc("(5+10 + calc(1*2)) * (2+1)"));
+// console.log(evalString("1*2+3/4+10*2"))
+</script>

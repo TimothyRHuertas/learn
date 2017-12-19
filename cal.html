@@ -1,0 +1,50 @@
+<script>
+
+var cal = [
+    {startTime: 1, endTime: 10},
+    {startTime: 2, endTime: 6},
+    {startTime: 3, endTime: 5},
+    {startTime: 7, endTime: 9},
+];
+
+
+var sortedCal = cal.sort((a,b)=>{
+	if(a.startTime>b.startTime) {
+		return 1;
+	}
+	else if(a.startTime<b.startTime) {
+		return -1;
+	}
+	else {
+		return 0;
+	}
+});
+
+var normalized = [];
+var currentMeeting = {startTime: sortedCal[0].startTime};
+normalized.push(currentMeeting);
+
+var lastEndTime = sortedCal[0].endTime;
+
+for(var i=1; i<sortedCal.length; i++){
+	var nextMeeting = sortedCal[i];
+
+	if(nextMeeting.startTime <= lastEndTime){
+		lastEndTime = Math.max(lastEndTime, nextMeeting.endTime);
+	}
+	else {
+		currentMeeting.endTime = lastEndTime;
+		currentMeeting = {startTime: nextMeeting.startTime};
+		lastEndTime = nextMeeting.endTime;
+		normalized.push(currentMeeting);
+	}
+}
+
+if(!currentMeeting.endTime){
+	currentMeeting.endTime = lastEndTime;
+}
+
+
+console.log(JSON.stringify(normalized));
+
+</script>
