@@ -1,9 +1,10 @@
 <script>
 
+var orderedOperationsGroups = [new Set(["/", "*"]), new Set(["+", "-"])];
 function evalString(str){
-	var productSum = evalSymbol(str, new Set(["/", "*"]));
-
-	return evalSymbol(productSum, new Set(["+", "-"]))
+	return orderedOperationsGroups.reduce(function(acc, operationSet){
+		return evalSymbol(acc, operationSet)
+	}, str);
 }
 
 function isNumberOrPeriod(str){
@@ -124,8 +125,14 @@ function calc(str){
 			}
 
 			//back track to the function name
+			/*if(isNaN(parseInt(stack[stack.length-1]))){
+				while()
+			}*/
 
-			stack.push(evalString(formula))
+
+			var evaluationValue = evalString(formula);
+
+			stack.push(evaluationValue);
 		}
 		else if(c != " ") {
 			stack.push(c);
