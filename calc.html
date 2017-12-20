@@ -456,6 +456,7 @@ var sum = function(){
 
 registerFunction("floor", floor);
 registerFunction("sum", sum);
+registerFunction("min", Math.min);
 
 
 //push chars from left to right on to a stack
@@ -471,18 +472,18 @@ function resolveReferencesForTestCases(str){
 }
 
 var testCases = [
-// "(5+10*2*2+3+(1*2))*(2+1)",
-// "((5+10*2*2+3+(1*2))*(2+1)+10.9*2)",
-// "(5+10*2*2+3+(1*2))*floor(2+1.33)",
-// "e2+(5+10*2*2+3+(1*2))*floor(2+1.33 * (E2))/EA32",
-"e2+(5+10*2*2+3+(1*2))*floor(2+1.33 * (E2))/EA32+sum(a1:a3)"];
+"(5+10*2*2+3+(1*2))*(2+1)",
+"((5+10*2*2+3+(1*2))*(2+1)+10.9*2)",
+"(5+10*2*2+3+(1*2))*floor(2+1.33)",
+"e2+(5+10*2*2+3+(1*2))*floor(2+1.33 * (E2))/EA32",
+"e2+(5+10*2*2+3+(1*2))*floor(2+1.33 * (E2))/EA32+sum(a1:a3) - (2*min(a2:a3)/(4+2))"];
 
 var testAggFunctions = {
-	"sum\\(a1:a3\\)": 33.5
+	"sum\\(a1:a3\\)": 33.5,
+	"min\\(a2:a3\\)": 3
 };
 
 testCases.forEach(function(it){
-
 	var expected = eval(resolveReferencesForTestCases(it));
 	var actual = calc(it);
 	
