@@ -1,12 +1,19 @@
 <html>
 	<head>
 		<style>
+			html, body, .game-container {
+				height: 100%;
+				margin: 0;
+				padding: 0;
+			}
 			.tile {
-				width: 50px;
-				height: 50px;
+				flex: 1;
+				width: 1vh;
+				height: 100%;
 				box-sizing: border-box;
-				border: 1px solid black;
+				border: 1px outset black;
 				display: inline-block;
+				margin: auto;
 			}
 
 			.showing {
@@ -20,6 +27,19 @@
 
 			.bomb {
 				background: red
+			}
+
+			.game-container {
+				display: flex;
+				flex-direction: column;
+				width: 100vh;
+				margin: auto
+			}
+
+			.row {
+				flex: 1;
+				height: 1vw;
+				display: flex;
 			}
 		</style>
 
@@ -67,20 +87,25 @@
 					return matrix;
 				}
 
+				asyncAlert(msg){
+					setTimeout(()=>{
+						alert(msg);
+					}, 1);
+				}
+
 				onTileClick(e) {
 					if(e.target.classList.contains("tile")){
 						let node = this.graph[parseInt(e.target.dataset.idx)];
 
 						if(node.value){
 							this.markAllAsShowing();
-							alert("loser")
+							this.asyncAlert("loser")
 						}
 						else {
 							this.sweep(node);
-							console.log(this.tilesToFind);
 							if(this.tilesToFind == 0){
 								this.markAllAsShowing();
-								alert("Winner winner chicken dinner!");
+								this.asyncAlert("Winner winner chicken dinner!");
 							}
 						}
 
@@ -153,7 +178,7 @@
 
 					while(outer < this.graph.length){
 						var inner = 0;
-						html += `<div>`; //start row
+						html += `<div class="row">`; //start row
 
 						while(inner<this.numColumns && outer+inner<this.graph.length){
 							let curIdx = outer+inner;
@@ -189,7 +214,7 @@
 			window.addEventListener("load", () => {
 				var mindSweeper = new MindSweeper();
 
-				mindSweeper.initGame(document.body, 20, 20);
+				mindSweeper.initGame(document.querySelector(".game-container"), 20, 20);
 			});
 			
 
@@ -198,5 +223,8 @@
 		</script>
 	</head>
 	<body>
+		<div class='game-container'>
+
+		</div>
 	</body>
 </html>
