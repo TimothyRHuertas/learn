@@ -1,0 +1,52 @@
+<script>
+
+function doSomethingAsycn(arg1){
+	return new Promise((resolve, reject)=>{
+		setTimeout(() => {
+			reject(arg1)
+		})
+	})
+}
+
+async function getIt() {
+	try{
+		let foo = await doSomethingAsycn("hi");
+	}
+	catch(e){
+		console.log(e);
+	}
+
+}
+
+function* idMaker() {
+  var index = 0;
+  while (index < 3)
+    yield index++;
+}
+
+var gen = idMaker();
+console.log(gen.next())
+
+getIt()
+//console.log("before")
+
+doSomethingAsycn("fire").then((it)=>{
+	console.log(it)
+})
+.catch((e)=>{
+	console.log(e);
+})
+
+
+function *Gen() {
+    var input1 = yield 'output1'
+    return input1
+}
+
+var gen = Gen()
+
+console.log(gen.next());
+console.log(gen.next('input1').value) // return 'input1'
+
+
+</script> 

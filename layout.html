@@ -1,20 +1,281 @@
 <html>
 	<head>
-		<style type="text/css">
-			div {
-				width: 50%;
-				box-sizing: border-box;
-				height: 100%;
-				padding: 5px;
-				float: left;
-				border: 1px solid black;
-			}
-		</style>
+		<script>
+/**
+* This code is thoroughly tested and documented. Please don't take that to mean 
+* I'm dogmatic about such practices. Rather it's an attempt to show what I'm capable of.
+*/
+
+/** Class for wrapping text. */
+class TextWrapUtil {
+  /**
+   * Wraps text to a given length by splitting on spaces when possible while preserving spaces between words, but removing leading and trailing spaces.
+   * @example - see unit tests for more
+   * // returns "Hi there   tim!\nGood day."
+   * TextWrapUtil.wrap("  Hi there   tim! Good day.  ", 15);
+   * @static
+   * @function
+   * @param {string} text - The text to wrap.
+   * @param {string} maxCharactersPerLine - The maximum number of characters per line.
+   * @throws {error} - INVALID_CHARACTERS_PER_LINE
+   * @returns {string} - The wrapped text
+   */
+  static wrap(text, maxCharactersPerLine) {
+    if (maxCharactersPerLine < 1 || !maxCharactersPerLine) {
+      let error = Error("INVALID_CHARACTERS_PER_LINE - I can't wrap on less than one character silly!");
+      error.type = "INVALID_CHARACTERS_PER_LINE";
+      throw error;
+    }
+
+    var wrapped = "";
+    var leftIdx = 0;
+
+    while (leftIdx < text.length) { //Outer loop: Advance until we have processed all the characters     
+      leftIdx = PrivateMethods.findLeftCharacterIndex(text, leftIdx);
+
+      if (leftIdx >= text.length) { //we were passed all spaces
+        break;
+      }
+      
+      let rightIdx = PrivateMethods.findRightCharacterIndex(text, leftIdx, maxCharactersPerLine);
+
+      //Add a new line if we have text that was created in the previous iteration of the outer loop and we are not at the end.
+      if (wrapped && leftIdx != text.length) {
+        wrapped += "\n";
+      }
+
+      //now that we have left and right it"s time to build our texting
+      wrapped += PrivateMethods.extractSubstringWhileNormalizingSpaces(text, leftIdx, rightIdx);
+
+      leftIdx = rightIdx;
+    }
+
+    return wrapped;
+  }
+}
+
+//END OF TextWrapUtil
+
+/**
+ * @private
+ * These methods are in a seperate class because I want to expose 
+ * them for unit testing without comprimising the integreity of the public interface for TextWrapUtil.
+ */
+class PrivateMethods {
+  /**
+   * Text that is null or undefined can not be wrapped.
+   * @private
+   * @static
+   * @function
+   * @param {string} text - The text to validate.
+   * @param {string} maxCharactersPerLine - The maximum number of characters per line.
+   * @throws {error} - INVALID_TEXT
+   */
+  static validateText(text) {
+    if (text == null || text == undefined) {
+      let error = Error("INVALID_TEXT - text can not be undefined.");
+      error.type = "INVALID_TEXT";
+      throw error;
+    }
+  }
+
+  /**
+   * Called by findRightCharacterIndex to make sure the text is valid, the starting point is not less than 1
+   * and greater than the lenght of the text.
+   * @private
+   * @static
+   * @function
+   * @param {string} text - The text to search in.
+   * @param {number} startingPoint - The point at which to begin the search.
+   * @throws {error} - INVALID_STARTING_POINT
+   */
+  static validateStartingPointAndText(text, startingPoint) {
+    this.validateText(text);
+    if (startingPoint >= text.length || startingPoint < 0) {
+      let error = Error("INVALID_STARTING_POINT - startingPoint must be between 0 and the length of text - 1.");
+      error.type = "INVALID_STARTING_POINT";
+      throw error;
+    }
+  }
+
+	/**
+   * Determine if a character is whitespace.
+   * @private
+   * @static
+   * @function
+   * @param {string} character - The character to evaluate.
+   * @returns {boolean} - true if the character is whitespace and false if not.
+   */
+  static isSpace(character){
+  	return character == " " || character == "\n" || character == "\r" || character == "\t";//could do character.match(/\s/), but that may be costly
+  }
+
+  /**
+   * Searches the text left to right for the first nonspace character on or after a starting point.
+   * and greater than the lenght of the text.
+   * @private
+   * @static
+   * @function
+   * @param {string} text - The text to search.
+   * @param {number} startingPoint - The index to begin the search (inclusive).
+   * @returns {number} - The index of the first non space character.
+   */
+  static findLeftCharacterIndex(text, startingPoint) {
+    this.validateStartingPointAndText(text, startingPoint);
+
+    var leftIdx = startingPoint;
+
+    while (leftIdx < text.length) { //Advance the left cursor past all leading spaces
+      if (!this.isSpace(text[leftIdx])) {
+        break;
+      }
+
+      leftIdx++
+    }
+
+    return leftIdx;
+  }
+
+  /**
+   * Searches the text from right to left for the last nonspace character between 
+   * the starting point (inclusive) and lesser of the starting point plus maxCharactersPerLine 
+   * and the length of the text.
+   * @private
+   * @static
+   * @function
+   * @param {string} text - The text to search.
+   * @param {number} startingPoint - The index to end the search (inclusive).
+   * @returns {number} maxCharactersPerLine - The number of chararacters after the starting point to 
+   * begin the search.
+   */
+  static findRightCharacterIndex(text, startingPoint, maxCharactersPerLine) {
+    this.validateStartingPointAndText(text, startingPoint);
+
+    if (maxCharactersPerLine < 1 || !maxCharactersPerLine) {
+      let error = Error("INVALID_CHARACTERS_PER_LINE - maxCharactersPerLine must be greater than one.");
+      error.type = "INVALID_CHARACTERS_PER_LINE";
+      throw error;
+    }
+
+    let leftIdx = startingPoint;
+    var rightIdx = startingPoint; 
+    
+    var characterCount = 0;
+    
+    while(characterCount != maxCharactersPerLine && rightIdx < text.length){
+    	var currentCharacter = text[rightIdx];
+      
+      if(this.isSpace(currentCharacter)){ //seek to the next character position
+      	while(rightIdx+1 < text.length){
+      		if(this.isSpace(text[rightIdx+1])){
+      			rightIdx++;
+      		}
+      		else {
+      			break;
+      		}
+      	}
+      }
+      
+
+      characterCount++;
+      rightIdx++;
+    }
+    
+    	let nextCharacter = text[rightIdx];
+      
+    	if(!this.isSpace(nextCharacter)){ //and the next one is not a space
+      	while (rightIdx != leftIdx) { //seek backwards until  rightIdx == leftIdx
+          let rightChar = text[rightIdx];
+
+          if (this.isSpace(rightChar) || rightIdx == text.length) { //we found our breaking point now remove trailing spaces
+            rightIdx--
+            while (rightIdx != leftIdx) {
+              if (!this.isSpace(text[rightIdx])) {
+                break;
+              }
+              rightIdx--
+            }
+
+            rightIdx++; //move the cursor forward to the space
+            break;
+          }
+
+
+          rightIdx--;
+        }
+
+        if (rightIdx == leftIdx) { //we didn"t find a space
+          rightIdx = Math.min(leftIdx + maxCharactersPerLine, text.length); //break in the middle of the word :(
+        }
+    }
+
+    
+
+    return rightIdx;
+  }
+
+  /**
+   * Returns the characters between leftIdx(inclusive) and rightIdx(exclusive).
+   * I normally use String.substring for this, but some interviewers consider that cheating.
+   * @private
+   * @static
+   * @function
+   * @param {string} text - The text to search.
+   * @param {number} leftIdx - Starting point (inclusive).
+   * @param {number} rightIdx - End point (exclusive).
+   * @returns {string} - The substring.
+   * @throws {error} - INVALID_LEFT_INDEX
+   * @throws {error} - INVALID_RIGHT_INDEX
+   */
+  static extractSubstringWhileNormalizingSpaces(text, leftIdx, rightIdx) {
+    if (leftIdx < 0) {
+      let error = new Error("INVALID_LEFT_INDEX - left index must be greater than zero.");
+      error.type = "INVALID_LEFT_INDEX";
+
+      throw error;
+    }
+
+    if (rightIdx > text.length) {
+      let error = new Error("INVALID_RIGHT_INDEX - right index must be less than or equal to the lenght of text.");
+      error.type = "INVALID_RIGHT_INDEX";
+
+      throw error;
+    }
+
+    let subString = "";
+
+		var lastAppendedCharacter = null;
+    
+    for (var i = leftIdx; i < rightIdx; i++) {
+    	var characterToAppend = text[i];
+      
+      if(this.isSpace(characterToAppend)){
+      	if(lastAppendedCharacter != characterToAppend){
+           subString += " ";
+           characterToAppend = " ";
+        }
+      }
+      else {
+      	subString += characterToAppend;
+      }
+      
+      lastAppendedCharacter = characterToAppend;
+    }
+
+    return subString;
+  }
+
+}
+var x = TextWrapUtil.wrap("  Hi there   tim! Good day.  ", 15);
+	debugger;
+    	console.log(x, 15)
+
+		
+		</script>
 	</head>
 	<body>
-		<div>
-			
-		</div>
-		<div>test 2</div>
+		
+
+		
 	</body>
 </html>

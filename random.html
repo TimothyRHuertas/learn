@@ -1,0 +1,202 @@
+<html>
+	<head>
+		<style>
+			.tile {
+				width: 50px;
+				height: 50px;
+				box-sizing: border-box;
+				border: 1px solid black;
+				display: inline-block;
+			}
+
+			.showing {
+				border: 1px inset #ccc;
+				background: green;
+			}
+
+			.showing.bomb {
+				background: red;
+			}
+
+			.bomb {
+				background: red
+			}
+		</style>
+
+		<script type="text/javascript">
+			class MindSweeper{
+				initGame(element, numColumns, numRows, percentBombs=.3){
+					if(this.boundOnTileClick){
+						this.element.removeEventListener("click", this.boundOnTileClick);
+					}
+
+					this.element = element;
+					this.numColumns = numColumns;
+					this.numRows = numRows;
+					
+					let numItems = numColumns*numRows;
+					this.bombsToDrop = Math.round(percentBombs * numItems);
+					this.tilesToFind = numItems - this.bombsToDrop;
+
+					let matrix = this.createGameMatrx(numItems);
+					this.graph = this.buildGraph(matrix, this.numColumns);
+					this.render();
+
+					this.boundOnTileClick = this.onTileClick.bind(this);
+					this.element.addEventListener("click", this.boundOnTileClick);
+				}
+
+				createGameMatrx(numItems){
+					let matrix = [];
+
+					for(var i=0; i<numItems; i++){
+						matrix.push(false);  
+					}
+
+					
+					var bombsDropped= 0;
+
+					while(this.bombsToDrop != bombsDropped){
+						let bombIdx = Math.round(Math.random() * (numItems - 1));
+						if(!matrix[bombIdx]){
+							matrix[bombIdx] = true;
+							bombsDropped++;
+						}
+					}
+
+					return matrix;
+				}
+
+				onTileClick(e) {
+					if(e.target.classList.contains("tile")){
+						let node = this.graph[parseInt(e.target.dataset.idx)];
+
+						if(node.value){
+							this.markAllAsShowing();
+							alert("loser")
+						}
+						else {
+							this.sweep(node);
+							console.log(this.tilesToFind);
+							if(this.tilesToFind == 0){
+								this.markAllAsShowing();
+								alert("Winner winner chicken dinner!");
+							}
+						}
+
+						this.render();
+					}
+				}
+
+				markAllAsShowing(){
+					this.graph.forEach((node) =>{
+						node.showing = true;
+					});
+				}
+
+				buildGraph(arr, itemsPerRow){
+					return arr.reduce((nodes, value, idx) => {
+						var node = this.nodeAtIndex(nodes, idx, arr);
+						node.value = value;
+
+						node.left = this.nodeAtIndex(nodes,idx - 1, arr);
+						node.right = this.nodeAtIndex(nodes,idx + 1, arr);
+						node.up = this.nodeAtIndex(nodes,idx - itemsPerRow, arr);
+						node.down = this.nodeAtIndex(nodes,idx + itemsPerRow, arr);
+
+
+
+						return nodes;
+					}, [])
+				}
+
+				sweep(node){
+					let queue = [];
+
+					queue.push(node);
+
+					while(queue.length){
+						let node = queue.shift();
+
+						if(!node.showing){
+							node.showing = true;
+							this.tilesToFind--;
+
+							[node.left, node.right, node.up, node.down].forEach((n)=>{
+								if(n && !n.value && !n.showing){
+									queue.push(n);
+								}
+							});
+						}
+						
+					}
+				}
+
+				nodeAtIndex(nodes, idx, game){
+					if(idx >= 0 && idx < this.numRows * this.numColumns){
+						var node = nodes[idx];
+
+						if(!node){
+							node = {};
+
+							nodes[idx] = node;
+						}
+
+						return node;
+					}
+				}
+
+				render(){
+					let maxTileWidth = 100/this.numColumns + "%";
+					var outer=0;
+					var html = "";
+
+					while(outer < this.graph.length){
+						var inner = 0;
+						html += `<div>`; //start row
+
+						while(inner<this.numColumns && outer+inner<this.graph.length){
+							let curIdx = outer+inner;
+							let item = this.graph[curIdx];
+
+							var className = "tile ";
+							if(item.showing){
+								className += " showing";
+							}
+							else {
+								className += " hidden";
+							}
+
+							if(item.value){
+								className += " bomb";
+							}
+
+							html += `<div data-idx='${curIdx}' class='${className}'></div>`;
+							
+							inner++;
+						}
+
+						html += "</div>"; //end row
+
+						outer += this.numColumns;
+					}
+
+					this.element.innerHTML = html;
+				}
+			}
+
+
+			window.addEventListener("load", () => {
+				var mindSweeper = new MindSweeper();
+
+				mindSweeper.initGame(document.body, 20, 20);
+			});
+			
+
+			
+			
+		</script>
+	</head>
+	<body>
+	</body>
+</html>
