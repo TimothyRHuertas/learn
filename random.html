@@ -48,7 +48,7 @@
 				height: 50%;
 			}
 
-			.bomsb {
+			.bomdb {
 				background: red
 			}
 
@@ -193,11 +193,9 @@
 						let north = this.nodeAtIndex(idx - this.numColumns);
 						let south = this.nodeAtIndex(idx + this.numColumns);
 
-						node.it = [north, northEast, east, southEast, south, southWest, west, northWest];
+						node.children = [north, northEast, east, southEast, south, southWest, west, northWest];
 
-						node.numBombs = [north, northEast, east, southEast, 
-						
-						south, southWest, west, northWest].filter((node) => {
+						node.numBombs = node.children.filter((node) => {
 							return node;
 						}).reduce((numBombs, node) =>{
 							numBombs += node.value;
@@ -225,20 +223,36 @@
 					}
 				}
 
+				showNode(node){
+					if(node && !node.value && !node.showing){
+						node.showing = true;
+						this.tilesToFind--;
+					}
+				}
+
+				shouldQueueNode(node){
+					return node && !node.value && !node.showing
+				}
+
 				sweep(node){
 					let queue = [];
+					this.showNode(node); //show the node
 
-					queue.push(node);
+					node.children.forEach((child) => {
+						if(this.shouldQueueNode(child)){
+							queue.push(child); //show all the children
+						}
+					});
+
 
 					while(queue.length){
 						let node = queue.shift();
 
-						if(!node.showing){
-							node.showing = true;
-							this.tilesToFind--;
+						this.showNode(node);
 
+						if(!node.numBombs) { 
 							node.children.forEach((n)=>{
-								if(n && !n.value && !n.showing){
+								if(this.shouldQueueNode(n)){
 									queue.push(n);
 								}
 							});
