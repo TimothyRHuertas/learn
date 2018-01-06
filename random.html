@@ -6,7 +6,7 @@
 				height: 100%;
 				margin: 0;
 				padding: 0;
-				font-family: Helvetica, Arial, sans-serif
+				font-family: Helvetica, Arial, sans-serif;
 			}
 			.tile {
 				flex: 1;
@@ -24,6 +24,7 @@
 
 			.bomb-count{
 				display: none;
+				font-size: 1vw;
 			}
 
 			.showing .bomb-count {
@@ -330,6 +331,16 @@
 
 					return settings;
 				}, settings);
+
+				if(settings.cols > 30){
+					alert("Sorry you over achiever; only 30 columns allowed.");
+					settings.cols = 30;
+				}
+
+				if(settings.difficulty > .8){
+					alert("Sorry you over achiever; I can't let you go over .8 difficulty.");
+					settings.difficulty = .8;
+				}
 
 				var mindSweeper = new MindSweeper();
 
