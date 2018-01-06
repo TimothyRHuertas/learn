@@ -48,7 +48,7 @@
 				height: 50%;
 			}
 
-			.bomdb {
+			.cheat {
 				background: red
 			}
 
@@ -82,21 +82,23 @@
 
 		<script type="text/javascript">
 			class MindSweeper{
-				initGame(element, numColumns, numRows, percentBombs, gameEndHandler){
+				initGame(element, numColumns, numRows, percentBombs, cheat, gameEndHandler){
 					if(this.boundOnTileClick){
 						this.element.removeEventListener("click", this.boundOnTileClick);
 					}
 
+					this.matrixNeedsFilling = true;
+					this.cheat = cheat;
 					this.element = element;
 					this.numColumns = numColumns;
 					this.numRows = numRows;
 					this.gameEndHandler = gameEndHandler;
 
-					let numItems = numColumns*numRows;
-					this.bombsToDrop = Math.round(percentBombs * numItems);
-					this.tilesToFind = numItems - this.bombsToDrop;
+					this.numItems = numColumns*numRows;
+					this.bombsToDrop = Math.round(percentBombs * this.numItems);
+					this.tilesToFind = this.numItems - this.bombsToDrop;
 
-					this.matrix = this.createGameMatrx(numItems);
+					this.createGameMatrx();
 					this.buildGraph();
 					this.render();
 
@@ -104,25 +106,28 @@
 					this.element.addEventListener("click", this.boundOnTileClick);
 				}
 
-				createGameMatrx(numItems){
-					let matrix = [];
+				createGameMatrx(){
+					this.matrix = [];
 
-					for(var i=0; i<numItems; i++){
-						matrix.push(0);  
+					for(var i=0; i<this.numItems; i++){
+						this.matrix.push(0);  
 					}
 
-					
+				}
+
+				fillGameMatrix(excludeIdx){
 					var bombsDropped= 0;
 
 					while(this.bombsToDrop != bombsDropped){
-						let bombIdx = Math.round(Math.random() * (numItems - 1));
-						if(!matrix[bombIdx]){
-							matrix[bombIdx] = 1;
+						let bombIdx = Math.round(Math.random() * (this.numItems - 1));
+						
+						if(excludeIdx != bombIdx && !this.matrix[bombIdx]){
+							this.matrix[bombIdx] = 1;
 							bombsDropped++;
 						}
-					}
+					};
 
-					return matrix;
+					this.buildGraph();
 				}
 
 				endGame(msg){
@@ -135,8 +140,14 @@
 
 				onTileClick(e) {
 					if(e.target.classList.contains("tile")){
-						let node = this.graph[parseInt(e.target.dataset.idx)];
+						var node = this.graph[parseInt(e.target.dataset.idx)];
 
+						if(this.matrixNeedsFilling){
+							this.fillGameMatrix(node.id);
+							this.matrixNeedsFilling = false;
+							var node = this.graph[parseInt(e.target.dataset.idx)];
+						}
+						
 						if(node.value){
 							this.markAllBombsAsShowing();
 							this.render();
@@ -262,7 +273,6 @@
 				}
 
 				render(){
-					let maxTileWidth = 100/this.numColumns + "%";
 					var outer=0;
 					var html = "";
 
@@ -275,6 +285,7 @@
 							let node = this.graph[curIdx];
 
 							var className = "tile ";
+
 							if(node.showing){
 								className += " showing";
 							}
@@ -284,6 +295,10 @@
 
 							if(node.value){
 								className += " bomb";
+
+								if(this.cheat){
+									className += " cheat";
+								}
 							}
 
 							html += `<div data-idx='${curIdx}' class='${className}'>
@@ -319,7 +334,7 @@
 				var mindSweeper = new MindSweeper();
 
 				let start = () => {
-					mindSweeper.initGame(document.querySelector(".game-container"), settings.cols, settings.cols, settings.difficulty, () => {
+					mindSweeper.initGame(document.querySelector(".game-container"), settings.cols, settings.cols, settings.difficulty, settings.cheat, () => {
 						start();
 					});
 				}
