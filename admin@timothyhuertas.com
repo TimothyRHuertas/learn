@@ -1,82 +1,47 @@
 <html>
 	<head>
-		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<style>
-			html, body {
+			html, body, .game-container {
 				height: 100%;
 				margin: 0;
 				padding: 0;
-				font-family: Helvetica, Arial, sans-serif
 			}
 			.tile {
 				flex: 1;
-				width: 100%;
+				width: 1vh;
 				height: 100%;
 				box-sizing: border-box;
 				border: 1px outset #ccc;
 				display: inline-block;
 				margin: auto;
-				background: #bbb;
-			    display: flex;
-			    align-items: center;
-			    justify-content: center;
-			}
-
-			.bomb-count{
-				display: none;
-			}
-
-			.showing .bomb-count {
-				display: block;
+				background: #bbb
 			}
 
 			.showing {
-				border: 1px solid #ccc;
+				border: 1px inset #ccc;
 				background: #ddd;
 			}
 
 			.showing.bomb {
 				background: #dd0000;
-				border: 1px solid #bb0000;
+				border: 1px inset #bb0000;
 			}
 
-			.showing.bomb .bomb-count {
-				background: #000;
-				display: block;
-				border-radius: 100%;
-				width: 50%;
-				height: 50%;
-			}
-
-			.bomsb {
+			.bsomb {
 				background: red
 			}
 
 			.game-container {
 				display: flex;
 				flex-direction: column;
-				height: 100%;
 				width: 100vh;
-				margin: auto;
-				overflow: hidden;
+				margin: auto
 			}
 
 			.row {
 				flex: 1;
-				height: 100%;
+				height: 1vw;
 				display: flex;
-			}
-
-			@media (orientation: portrait) { 
-				.game-container {
-					width: 100%;
-					height: 100vw;
-				}
-
-				body {
-					display: flex;
-					align-items: center;
-				}
 			}
 		</style>
 
@@ -96,8 +61,8 @@
 					this.bombsToDrop = Math.round(percentBombs * numItems);
 					this.tilesToFind = numItems - this.bombsToDrop;
 
-					this.matrix = this.createGameMatrx(numItems);
-					this.buildGraph();
+					let matrix = this.createGameMatrx(numItems);
+					this.graph = this.buildGraph(matrix, this.numColumns);
 					this.render();
 
 					this.boundOnTileClick = this.onTileClick.bind(this);
@@ -108,7 +73,7 @@
 					let matrix = [];
 
 					for(var i=0; i<numItems; i++){
-						matrix.push(0);  
+						matrix.push(false);  
 					}
 
 					
@@ -117,7 +82,7 @@
 					while(this.bombsToDrop != bombsDropped){
 						let bombIdx = Math.round(Math.random() * (numItems - 1));
 						if(!matrix[bombIdx]){
-							matrix[bombIdx] = 1;
+							matrix[bombIdx] = true;
 							bombsDropped++;
 						}
 					}
@@ -126,11 +91,10 @@
 				}
 
 				endGame(msg){
-					window.setTimeout(()=>{
+					setTimeout(()=>{
 						alert(msg);
 						this.gameEndHandler();
-					},10);
-					
+					}, 1);
 				}
 
 				onTileClick(e) {
@@ -138,91 +102,41 @@
 						let node = this.graph[parseInt(e.target.dataset.idx)];
 
 						if(node.value){
-							this.markAllBombsAsShowing();
-							this.render();
-							this.endGame("Loser! I'll give you another chance.")
+							this.markAllAsShowing();
+							this.endGame("loser")
 						}
 						else {
 							this.sweep(node);
 							if(this.tilesToFind == 0){
-								this.render();
-								this.endGame("Winner winner chicken dinner! I want a rematch.");
-							}
-							else {
-								this.render();
+								this.markAllAsShowing();
+								this.endGame("Winner winner chicken dinner!");
 							}
 						}
-						
+
+						this.render();
 					}
 				}
 
-				markAllBombsAsShowing(){
+				markAllAsShowing(){
 					this.graph.forEach((node) =>{
-						if(node.value){
-							node.showing = true;
-						}
+						node.showing = true;
 					});
 				}
 
-				buildGraph(){
-					this.graph = [];
+				buildGraph(arr, itemsPerRow){
+					return arr.reduce((nodes, value, idx) => {
+						var node = this.nodeAtIndex(nodes, idx, arr);
+						node.value = value;
 
-					return this.matrix.reduce((nodes, value, idx) => {
-						var node = this.nodeAtIndex(idx);
+						node.left = this.nodeAtIndex(nodes,idx - 1, arr);
+						node.right = this.nodeAtIndex(nodes,idx + 1, arr);
+						node.up = this.nodeAtIndex(nodes,idx - itemsPerRow, arr);
+						node.down = this.nodeAtIndex(nodes,idx + itemsPerRow, arr);
 
-						let westBound = Math.floor(idx/this.numColumns) * this.numColumns;
-						let eastBound = westBound + this.numColumns;
 
-						var east, northEast, southEast, west, northWest, southWest;
 
-						let eastIndex = idx + 1;
-						let westIndex = idx - 1;
-
-						if(eastIndex < eastBound){
-							east = this.nodeAtIndex(eastIndex);
-							northEast = this.nodeAtIndex(eastIndex - this.numColumns);
-							southEast = this.nodeAtIndex(eastIndex + this.numColumns);
-						}
-						
-						if(westIndex>=westBound){
-							west = this.nodeAtIndex(westIndex);
-							northWest = this.nodeAtIndex(westIndex - this.numColumns);
-							southWest = this.nodeAtIndex(westIndex + this.numColumns);
-						}
-
-						let north = this.nodeAtIndex(idx - this.numColumns);
-						let south = this.nodeAtIndex(idx + this.numColumns);
-
-						node.it = [north, northEast, east, southEast, south, southWest, west, northWest];
-
-						node.numBombs = [north, northEast, east, southEast, 
-						
-						south, southWest, west, northWest].filter((node) => {
-							return node;
-						}).reduce((numBombs, node) =>{
-							numBombs += node.value;
-
-							return numBombs;
-						}, 0);
-
-						node.children = [north, east, south, west];
-
-						return this.graph;
-					}, this.graph)
-				}
-
-				nodeAtIndex(idx){
-					if(idx >= 0 && idx < this.numRows * this.numColumns){
-						var node = this.graph[idx];
-						
-						if(!node){
-							node = {value: this.matrix[idx], id: idx};
-
-							this.graph[idx] = node;
-						}
-
-						return node;
-					}
+						return nodes;
+					}, [])
 				}
 
 				sweep(node){
@@ -237,13 +151,27 @@
 							node.showing = true;
 							this.tilesToFind--;
 
-							node.children.forEach((n)=>{
+							[node.left, node.right, node.up, node.down].forEach((n)=>{
 								if(n && !n.value && !n.showing){
 									queue.push(n);
 								}
 							});
 						}
 						
+					}
+				}
+
+				nodeAtIndex(nodes, idx, game){
+					if(idx >= 0 && idx < this.numRows * this.numColumns){
+						var node = nodes[idx];
+
+						if(!node){
+							node = {};
+
+							nodes[idx] = node;
+						}
+
+						return node;
 					}
 				}
 
@@ -258,23 +186,21 @@
 
 						while(inner<this.numColumns && outer+inner<this.graph.length){
 							let curIdx = outer+inner;
-							let node = this.graph[curIdx];
+							let item = this.graph[curIdx];
 
 							var className = "tile ";
-							if(node.showing){
+							if(item.showing){
 								className += " showing";
 							}
 							else {
 								className += " hidden";
 							}
 
-							if(node.value){
+							if(item.value){
 								className += " bomb";
 							}
 
-							html += `<div data-idx='${curIdx}' class='${className}'>
-										<span class='bomb-count'>${node.value ? "" : node.numBombs}</span>
-									</div>`;
+							html += `<div data-idx='${curIdx}' class='${className}'></div>`;
 							
 							inner++;
 						}
