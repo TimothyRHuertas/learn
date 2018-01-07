@@ -12,7 +12,6 @@
 			.tile {
 				flex: 1;
 				width: 100%;
-				height: 10vmin;
 				box-sizing: border-box;
 				border: 1px outset #ccc;
 				margin: auto;
@@ -277,6 +276,7 @@
 				render(){
 					var outer=0;
 					var html = "";
+					var tileSize = `${Math.floor(100/this.numColumns)}vmin`;
 
 					while(outer < this.graph.length){
 						var inner = 0;
@@ -303,7 +303,7 @@
 								}
 							}
 
-							html += `<div data-idx='${curIdx}' class='${className}'>
+							html += `<div style="height: ${tileSize}" data-idx='${curIdx}' class='${className}'>
 										<span class='bomb-count'>${node.value ? "" : node.numBombs}</span>
 									</div>`;
 							

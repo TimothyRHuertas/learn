@@ -1,52 +1,23 @@
-<script>
-var words = [
-    'ptolemaic',
-    'retrograde',
-    'supplant',
-    'undulate',
-    'xenoepist',
-    'zebra',
-    'zylaphone',
-    'zz',
-    // 'asymptote', // <-- rotates here!
-    // 'babka',
-    // 'banoffee',
-    // 'engender',
-    // 'karpatka',
-    // 'othellolagkage',
-    //'ox',
-];
+<script type="text/javascript">
+	let arr = [25, 30, 35, 40, 45, 50, 0, 5, 15, 20];
+	let first = arr[0];
+	var left = 0;
+	var right = arr.length - 1;
 
-var firstChar = words[0].charAt(0)
-var i = Math.floor(words.length/2);
-
-var x=0;
-while(i!=words.length){
-	x++;
-	if(x==100) break;
-	var curChar = words[i].charAt(0);
-	var leftChar = words[i-1].charAt(0);
-	console.log(i)
-	if(leftChar>curChar){
-		console.log(i);
-		break;
-	}
-	else {
-		if(curChar<firstChar){
-			//go left
-			console.log("left")
-			i = Math.floor(i/2)
+	while(left < right){
+		let guessIdx = Math.floor(left + (right - left)/2);
+		
+		if(arr[guessIdx] > first){
+			left = guessIdx;
 		}
 		else {
-			//go right
-			console.log("right")
-
-			i += Math.floor((words.length - i)/2)-1;
+			right =  guessIdx;
 		}
+
+		if(left+1 ==right){
+			console.log(right)
+			break;
+		}
+
 	}
-}
-
-
-
-
 </script>
