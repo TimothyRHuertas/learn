@@ -110,14 +110,14 @@
 				createGameMatrx(){
 					this.matrix = [];
 
-					for(var i=0; i<this.numItems; i++){
+					for(let i=0; i<this.numItems; i++){
 						this.matrix.push(0);  
 					}
 
 				}
 
 				fillGameMatrix(excludeIdx){
-					var bombsDropped= 0;
+					let bombsDropped= 0;
 
 					while(this.bombsToDrop != bombsDropped){
 						let bombIdx = Math.round(Math.random() * (this.numItems - 1));
@@ -141,12 +141,12 @@
 
 				onTileClick(e) {
 					if(e.target.classList.contains("tile")){
-						var node = this.graph[parseInt(e.target.dataset.idx)];
+						let node = this.graph[parseInt(e.target.dataset.idx)];
 
 						if(this.matrixNeedsFilling){
 							this.fillGameMatrix(node.id);
 							this.matrixNeedsFilling = false;
-							var node = this.graph[parseInt(e.target.dataset.idx)];
+							node = this.graph[parseInt(e.target.dataset.idx)];
 						}
 						
 						if(node.value){
@@ -177,15 +177,15 @@
 				}
 
 				buildGraph(){
-					this.graph = [];
+					window.graph = this.graph = [];
 
 					return this.matrix.reduce((nodes, value, idx) => {
-						var node = this.nodeAtIndex(idx);
+						let node = this.nodeAtIndex(idx);
 
 						let westBound = Math.floor(idx/this.numColumns) * this.numColumns;
 						let eastBound = westBound + this.numColumns;
 
-						var east, northEast, southEast, west, northWest, southWest;
+						let east, northEast, southEast, west, northWest, southWest, north, south;
 
 						let eastIndex = idx + 1;
 						let westIndex = idx - 1;
@@ -202,20 +202,19 @@
 							southWest = this.nodeAtIndex(westIndex + this.numColumns);
 						}
 
-						let north = this.nodeAtIndex(idx - this.numColumns);
-						let south = this.nodeAtIndex(idx + this.numColumns);
+						north = this.nodeAtIndex(idx - this.numColumns);
+						south = this.nodeAtIndex(idx + this.numColumns);
 
 						node.children = [north, northEast, east, southEast, south, southWest, west, northWest];
 
-						node.numBombs = node.children.filter((node) => {
-							return node;
-						}).reduce((numBombs, node) =>{
-							numBombs += node.value;
+						node.numBombs = node.children.filter((child) => {
+							return child;
+						}).reduce((numBombs, child) =>{
+							numBombs += child.value;
 
 							return numBombs;
 						}, 0);
 
-						node.children = [north, east, south, west];
 
 						return this.graph;
 					}, this.graph)
@@ -223,7 +222,7 @@
 
 				nodeAtIndex(idx){
 					if(idx >= 0 && idx < this.numRows * this.numColumns){
-						var node = this.graph[idx];
+						let node = this.graph[idx];
 						
 						if(!node){
 							node = {value: this.matrix[idx], id: idx};
@@ -249,19 +248,14 @@
 				sweep(node){
 					let queue = [];
 					this.showNode(node); //show the node
-
 					node.children.forEach((child) => {
 						if(this.shouldQueueNode(child)){
 							queue.push(child); //show all the children
 						}
 					});
-
-
 					while(queue.length){
 						let node = queue.shift();
-
 						this.showNode(node);
-
 						if(!node.numBombs) { 
 							node.children.forEach((n)=>{
 								if(this.shouldQueueNode(n)){
@@ -274,19 +268,19 @@
 				}
 
 				render(){
-					var outer=0;
-					var html = "";
-					var tileSize = `${Math.floor(100/this.numColumns)}vmin`;
+					let outer=0;
+					let html = "";
+					let tileSize = `${Math.floor(100/this.numColumns)}vmin`;
 
 					while(outer < this.graph.length){
-						var inner = 0;
+						let inner = 0;
 						html += `<div class="row">`; //start row
 
 						while(inner<this.numColumns && outer+inner<this.graph.length){
 							let curIdx = outer+inner;
 							let node = this.graph[curIdx];
 
-							var className = "tile ";
+							let className = "tile ";
 
 							if(node.showing){
 								className += " showing";
@@ -343,7 +337,7 @@
 					settings.difficulty = .8;
 				}
 
-				var mindSweeper = new MindSweeper();
+				let mindSweeper = new MindSweeper();
 
 				let start = () => {
 					mindSweeper.initGame(document.querySelector(".game-container"), settings.cols, settings.cols, settings.difficulty, settings.cheat, () => {
@@ -353,10 +347,6 @@
 
 				start();
 			});
-			
-
-			
-			
 		</script>
 	</head>
 	<body>

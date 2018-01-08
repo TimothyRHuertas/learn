@@ -1,0 +1,67 @@
+<script>
+/*Write a function that given a string would print the 'expanded' version of it. 
+For example a2[bc2[c]]d would print out abcccbcccd 
+
+Note: 
+The number before the opening and closing square brackets is the multiplier for the characters within the square brackets 
+*/
+
+const open = "[";
+const closed = "]";
+
+function findContentsBetweenBrackets(str){
+	let substring = "";
+	let openCount = 1;
+	let closedCount = 0;
+
+	for(let i=1; i<str.length; i++){ 
+		current = str[i];
+		
+		if(current == open){
+			openCount++;
+		}
+		else if(current == closed){
+			closedCount++;
+		}
+
+		if(openCount == closedCount){
+			break;
+		}
+		else {
+			substring += current;
+		}
+	}
+
+	return substring;
+}
+
+function expanded(str){
+	let retVal = "";
+	let i=0;
+
+	while(i<str.length){
+		current = str[i];
+
+		if(Number.isInteger(parseInt(current))){
+			let number = parseInt(current);
+			i++;
+			let contentsBetweenBrackets = findContentsBetweenBrackets(str.substring(i));
+			i += contentsBetweenBrackets.length + 1;//for the closing backet
+
+			for(let x=0; x<number; x++){
+				retVal += expanded(contentsBetweenBrackets);
+			}
+		}
+		else {
+			retVal += current;
+		}
+
+		i++;
+	}
+
+	return retVal;
+}
+
+console.log(expanded("a2[bc2[c]]d") == "abcccbcccd");
+
+</script>
