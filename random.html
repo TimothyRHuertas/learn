@@ -246,8 +246,7 @@
 				}
 
 				sweep(node){
-					let queue = [];
-					this.showNode(node); //show the node
+					let queue = [node];
 					node.children.forEach((child) => {
 						if(this.shouldQueueNode(child)){
 							queue.push(child); //show all the children
