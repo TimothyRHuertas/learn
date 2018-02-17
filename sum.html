@@ -1,0 +1,42 @@
+<script>
+
+
+function sumCombos(arr, sumAmount){
+	let retVal = []
+	let numbersSeen = new Set()
+	let deltasSeen = new Set() 
+
+	arr.forEach((number, i) => {
+		if(!numbersSeen.has(number)){
+			let delta = sumAmount - number;
+			let arrayWithoutNumber = arrayWithoutItem(arr, i)
+			let deltaIdx = arrayWithoutNumber.indexOf(delta)
+
+
+			if(deltaIdx != -1){
+				retVal.push([number, delta])
+			}
+			else if(!deltasSeen.has(delta)){
+				sumCombos(arrayWithoutNumber, delta).forEach((sub)=>{
+					retVal.push([number].concat(sub))
+				})
+			}
+
+			deltasSeen.add(delta)
+			numbersSeen.add(number)
+		}
+	})
+
+	return retVal
+}
+
+
+
+function arrayWithoutItem(arr, idx){
+	return arr.slice(0,idx).concat(arr.slice(idx+1))
+}
+
+
+console.log(sumCombos([10, 5, 9, 6, 3, 3, 2, 2, 2].sort(), 15))
+
+</script>
