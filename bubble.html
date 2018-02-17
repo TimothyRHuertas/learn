@@ -1,0 +1,39 @@
+<html>
+	<head>
+		<style>
+			div {
+				margin: 50px;
+				border: 1px solid black;
+				min-width: 40px;
+				min-height: 40px
+			}
+
+
+		</style>
+
+		<script type="text/javascript">
+			window.addEventListener("load", (e)=>{
+				document.body.addEventListener("click", (e)=>{
+					console.log(e.target.outerHTML)
+				});
+
+				document.querySelectorAll("div").forEach((c)=>{
+					c.addEventListener("click", (e)=>{
+						console.log(e.currentTarget.id, true);
+						e.cancelBubble = true;
+					})
+				})
+				
+			})
+		</script>
+	</head>
+	<body>
+		<div id="one">
+			<div id="two">
+				<div id="three">
+
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
